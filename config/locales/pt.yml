@@ -1,0 +1,4 @@
+# English strings go here for Rails i18n
+en:
+  field_section_break: "Quebra de sessão"
+  field_multi_column: "Multi-Coluna"
