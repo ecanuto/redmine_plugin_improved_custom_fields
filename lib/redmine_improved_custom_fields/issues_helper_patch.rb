@@ -24,21 +24,21 @@ module RedmineImprovedIssuesHelperPatch
             s << build_non_multi_column(l,r)  if l != ""
             l = ""
             r = ""
+            s << "<hr />\n" if value.custom_field.section_break?
             s << "<div class='wiki'>\n"
             s << "<p><strong>#{ h(value.custom_field.name) }</strong></p>\n"
-            s << "<p>#{ simple_format_without_paragraph(h(show_value(value))) }</p>\n"
+            s << "<p>#{ simple_format_without_paragraph(h(show_field(value))) }</p>\n"
             s << "</div>"
             n = 0
           else
-            #s << "<hr />\n" if value.custom_field.section_break?
             if value.custom_field.section_break?
               s << build_non_multi_column(l,r)  if l != ""
               l = ""
               r = ""
               s << "<hr />\n"
             end
-            l << "<div class=\"status attribute\"><div class=\"label\">"+h(value.custom_field.name)+"</div><div class=\"value\">"+h(show_value(value))+"</div></div>" if n % 2  == 0
-            r << "<div class=\"status attribute\"><div class=\"label\">"+h(value.custom_field.name)+"</div><div class=\"value\">"+h(show_value(value))+"</div></div>" if n % 2  > 0
+            l << "<div class=\"status attribute\"><div class=\"label\">"+h(value.custom_field.name)+"</div><div class=\"value\">"+h(show_field(value))+"</div></div>" if n % 2  == 0
+            r << "<div class=\"status attribute\"><div class=\"label\">"+h(value.custom_field.name)+"</div><div class=\"value\">"+h(show_field(value))+"</div></div>" if n % 2  > 0
             n += 1
           end
           last_multi_column = value.custom_field.multi_column?
@@ -49,12 +49,23 @@ module RedmineImprovedIssuesHelperPatch
 
       def build_non_multi_column(left, right)
         string = ""
-        string << "<div class=\"attributes\"><div class=\"splitcontent\"><div class=\"splitcontentleft\">"
+        string << "<div class=\"splitcontent\"><div class=\"splitcontentleft\">"
         string << left
         string << '</div><div class="splitcontentleft">'
         string << right
-        string << "</div></div></div>"
+        string << "</div></div>"
         return string
+      end
+
+      def show_field(field)
+        output_mask = field.custom_field.output_mask
+        if output_mask.nil? || output_mask.empty?
+          show_value(field)
+        else
+          sprintf output_mask, field.value
+        end
+      rescue StandardError, SyntaxError
+        show_value(field)
       end
       
       def next_multi_column_index(issue, index, custom_field_values)
